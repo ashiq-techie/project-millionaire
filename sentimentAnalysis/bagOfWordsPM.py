@@ -7,7 +7,7 @@ from nltk.corpus import stopwords
 from pymongo import MongoClient
 client1 = MongoClient()
 db = client1.crawledCompanyBasics
-train = db.crawledNewsFeedsCollection.find({},{'_id':1,'extractedPostBody':1,'linkTitle':1})
+train = db.actualCrawledNewsFeeds.find({},{'_id':1,'extractedPostBody':1,'linkTitle':1})
 del client1
 def textToWords(textToConvert):
 	soup = BeautifulSoup(textToConvert, "html5lib")
