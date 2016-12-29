@@ -16,7 +16,7 @@ for exchangeid in [47,50]:
 	for cid in db.companyCollection.find({},{"companyId":1}):
 		companyId = cid['companyId']
 		# current_sitemap_url = 'http://etfeeds.indiatimes.com/ETServiceChartCompanyPage/GetCompanyPriceInformation?companyid='+companyId+'&exchangeid=50&datatype=eod&filtertype=eod&tagId=9175&firstreceivedataid=2016-11-20&lastreceivedataid=&directions=back&callback=serviceHit.chartResultCallback&scripcodetype=company&uptodataid=2015-11-4&_=1479675215098'
-		current_sitemap_url = 'http://etfeeds.indiatimes.com/ETServiceChartCompanyPage/GetCompanyPriceInformation?companyid='+companyId+'&exchangeid='+str(exchangeid)+'&datatype=eod&filtertype=eod&tagId=9175&firstreceivedataid=2016-11-20&lastreceivedataid=&directions=back&callback=serviceHit.chartResultCallback&scripcodetype=company&uptodataid=2012-11-4&_=1479675215098'
+		current_sitemap_url = 'http://etfeeds.indiatimes.com/ETServiceChartCompanyPage/GetCompanyPriceInformation?companyid='+companyId+'&exchangeid='+str(exchangeid)+'&datatype=eod&filtertype=eod&tagId=9175&firstreceivedataid=2016-12-26&lastreceivedataid=&directions=back&callback=serviceHit.chartResultCallback&scripcodetype=company&uptodataid=2016-11-19&_=1479675215098'
 		hdr = {
 			'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
 			'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',

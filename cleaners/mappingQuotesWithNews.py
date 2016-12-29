@@ -13,11 +13,10 @@ pp = pprint.PrettyPrinter()
 # get all companyIds
 client1 = MongoClient()
 db = client1.crawledCompanyBasics
-companyIds = db.companyCollection.find({},{"companyId":1})
-client1.close()
+companyIds = db.companyCollection.find({},{"companyId":1}).skip(101).batch_size(5539)
 print companyIds.count()
 
-writeFile=csv.writer(open('../../backupData/crawledProcessedData/completeQuoteArticleMapping.csv', 'wb'), delimiter=',')
+writeFile=csv.writer(open('../../backupData/crawledProcessedData/completeQuoteArticleMappingPart2.csv', 'wb'), delimiter=',')
 
 def textToWords(textToConvert):
 	soup = BeautifulSoup(textToConvert, "html5lib")
@@ -80,7 +79,7 @@ for cid in companyIds:
 					'annotators': 'tokenize,ssplit,sentiment',
 					'outputFormat': 'json'
 				})
-				
+
 
 				sentimentValues = np.zeros(5) #Initialize the sentiment counter
 				incr = 0
