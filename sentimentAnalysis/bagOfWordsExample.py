@@ -147,7 +147,7 @@ print targetArray[0]
 print estimatorArray[0]
 
 testDataVecs = getAvgFeatureVecs(clean_test_articles, model, 300, weights, index2word_set)
-result = forest.predict( np.concatenate(testDataVecs,estimatorArray) )
+result = forest.predict( np.concatenate((testDataVecs,estimatorArray)))
 
-output = pd.DataFrame( data=np.concatenate(targetArray,result) )
+output = pd.DataFrame( data=np.concatenate((targetArray,result)) )
 output.to_csv( "../../backupData/models/learnedModels/randomForestOutput.csv", index=False )
