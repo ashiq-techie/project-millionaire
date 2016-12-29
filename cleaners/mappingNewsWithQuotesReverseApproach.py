@@ -16,7 +16,7 @@ db = client1.crawledCompanyBasics
 newsRecords = db.uniqueCrawledNewsFeeds.find({'postType': {'$in':["News Updates", "Press Releases"]}},{'_id':1,'companyId':1, 'cleanedDate':1,'extractedPostBody':1,'postType':1,'linkTitle':1,'linkUrl':1}).skip(60000).batch_size(5)
 print newsRecords.count()
 
-writeFile=csv.writer(open('../../backupData/crawledProcessedData/completeQuoteArticleMappingPart4New.csv', 'wb'), delimiter=',')
+writeFile=csv.writer(open('../../backupData/crawledProcessedData/completeQuoteArticleMappingPart60000Above.csv', 'wb'), delimiter=',')
 
 def textToWords(textToConvert):
 	soup = BeautifulSoup(textToConvert, "html5lib")
