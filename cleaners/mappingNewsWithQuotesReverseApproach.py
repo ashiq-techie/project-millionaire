@@ -13,10 +13,12 @@ pp = pprint.PrettyPrinter()
 # get all companyIds
 client1 = MongoClient()
 db = client1.crawledCompanyBasics
-newsRecords = db.uniqueCrawledNewsFeeds.find({'postType': {'$in':["News Updates", "Press Releases"]}},{'_id':1,'companyId':1, 'cleanedDate':1,'extractedPostBody':1,'postType':1,'linkTitle':1,'linkUrl':1}).skip(18640).batch_size(5)
+
+newsRecords = db.uniqueCrawledNewsFeeds.find({'postType': {'$in':["News Updates", "Press Releases"]}},{'_id':1,'companyId':1, 'cleanedDate':1,'extractedPostBody':1,'postType':1,'linkTitle':1,'linkUrl':1}).skip(60000).batch_size(5)
 print newsRecords.count()
 
-writeFile=csv.writer(open('../../backupData/crawledProcessedData/completeQuoteArticleMappingPart4New.csv', 'wb'), delimiter=',')
+writeFile=csv.writer(open('../../backupData/crawledProcessedData/completeQuoteArticleMappingPart60000Above.csv', 'wb'), delimiter=',')
+
 
 def textToWords(textToConvert):
 	soup = BeautifulSoup(textToConvert, "html5lib")
@@ -24,7 +26,9 @@ def textToWords(textToConvert):
 	words = re.sub("[^a-zA-Z]"," ", soup.get_text()).replace('\n', '').lower().split()
 	finalWords = [w for w in words if not w in stopwords.words("english")]
 	return(" ".join(finalWords))
-iterRecords = 18641
+
+iterRecords = 60000
+
 
 # for each companyIds get quotes with difference 
 for news in newsRecords:
