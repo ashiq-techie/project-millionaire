@@ -14,10 +14,10 @@ pp = pprint.PrettyPrinter()
 client1 = MongoClient()
 db = client1.crawledCompanyBasics
 
-newsRecords = db.uniqueCrawledNewsFeeds.find({'postType': {'$in':["News Updates", "Press Releases"]}},{'_id':1,'companyId':1, 'cleanedDate':1,'extractedPostBody':1,'postType':1,'linkTitle':1,'linkUrl':1}).skip(60000).batch_size(5)
+newsRecords = db.uniqueCrawledNewsFeeds.find({'postType': {'$in':["News Updates", "Press Releases"]}},{'_id':1,'companyId':1, 'cleanedDate':1,'extractedPostBody':1,'postType':1,'linkTitle':1,'linkUrl':1}).skip(70000).batch_size(5)
 print newsRecords.count()
 
-writeFile=csv.writer(open('../../backupData/crawledProcessedData/completeQuoteArticleMappingPart60000Above.csv', 'wb'), delimiter=',')
+writeFile=csv.writer(open('../../backupData/crawledProcessedData/completeQuoteArticleMappingPart70000Above.csv', 'wb'), delimiter=',')
 
 
 def textToWords(textToConvert):
@@ -27,7 +27,7 @@ def textToWords(textToConvert):
 	finalWords = [w for w in words if not w in stopwords.words("english")]
 	return(" ".join(finalWords))
 
-iterRecords = 60000
+iterRecords = 70001
 
 
 # for each companyIds get quotes with difference 
@@ -178,5 +178,9 @@ for news in newsRecords:
 		iterRecords = iterRecords+1
 	except:
 		db.errorTransformingNewsFeedQuotes.insert({'newsFeedId':news['_id']})
+		print "---------------------------------------------------------------------------------------"
+		print str(iterRecords) + " records processed"
+		print "---------------------------------------------------------------------------------------"
+		iterRecords = iterRecords+1
 		continue
 	
