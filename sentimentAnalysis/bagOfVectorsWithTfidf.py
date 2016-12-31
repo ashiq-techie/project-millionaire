@@ -72,6 +72,18 @@ def getAvgFeatureVecs(reviews, model, num_features, weights, index2word_set):
         counter = counter + 1.
     return reviewFeatureVecs
 
+def getTfidfWeights(corpus):
+    tfidf = TfidfVectorizer(min_df=1)
+    tfs = tfidf.fit_transform(corpus)
+
+    feature_names = tfidf.get_feature_names()
+
+    weights = {}
+    for col in tfs.nonzero()[1]:
+        weights[feature_names[col]] = tfs[0, col]
+    return weights
+
+
 
 
 print "Cleaning and parsing the training set...\n"
@@ -109,72 +121,26 @@ for i in xrange( 0, num_test_articles ):
 
 
 # get tfidf
-tfidf = TfidfVectorizer(min_df=1)
-tfs = tfidf.fit_transform(clean_train_articles+clean_test_articles)
 
-feature_names = tfidf.get_feature_names()
-print clean_train_articles[0]
-weights = {}
-for col in tfs.nonzero()[1]:
-    weights[feature_names[col]] = tfs[0, col]
+weights = getTfidfWeights(clean_train_articles+clean_test_articles)
 
 # estimate sentiments
 
 print "loading model"
-targetArrayTrain = train.as_matrix(columns=['very_neg','neg','neutral','pos','very_pos'])
-estimatorArrayTrain = train.as_matrix(columns=['company_id','volume','prev_volume','prev_close','close','prev_adj_close','adj_close','prev_high','high','prev_open','open'])
-print targetArrayTrain[0]
-print estimatorArrayTrain[0]
 
 
 model = Word2Vec.load_word2vec_format('../../backupData/preTrainedModels/models/GoogleNews-vectors-negative300/GoogleNews-vectors-negative300.bin', binary=True)
 # Index2word is a list that contains the names of the words in 
 # the model's vocabulary. Convert it to a set, for speed 
-print "creating set"
+print "Creating word index set"
 index2word_set = set(model.index2word)
-print "training model"
+print "Processing training set"
 trainDataVecs = getAvgFeatureVecs(clean_train_articles, model, 300, weights, index2word_set)
-
-
-
-from sklearn.ensemble import RandomForestRegressor
-forest = RandomForestRegressor( n_estimators = 100 )
-
-# very_neg,neg,neutral,pos,very_pos
-
-print "Fitting a random forest to labeled training data..."
-forest = forest.fit( np.concatenate((trainDataVecs, estimatorArrayTrain), axis=1), targetArrayTrain  )
-
-
-
-with open('../../backupData/models/learnedModels/randomForest.cpickle.dump', 'wb') as f:
-    cPickle.dump(forest, f)
-
 print "Processing Test set"
-targetArrayTest = test.as_matrix(columns=['very_neg','neg','neutral','pos','very_pos'])
-estimatorArrayTest = test.as_matrix(columns=['company_id','volume','prev_volume','prev_close','close','prev_adj_close','adj_close','prev_high','high','prev_open','open'])
-print targetArrayTest[0]
-print estimatorArrayTest[0]
-
 testDataVecs = getAvgFeatureVecs(clean_test_articles, model, 300, weights, index2word_set)
-print "predicting sentiments"
-targetArrayTestPrediction = forest.predict( np.concatenate((testDataVecs,estimatorArrayTest), axis=1))
-
-# stock market prediction
-
-stockForest = RandomForestRegressor(n_estimators=100)
-print "fitting sentiments to forest"
-stockForest = stockForest.fit(np.concatenate((np.concatenate((trainDataVecs,estimatorArrayTrain),axis=1),targetArrayTrain),axis=1),train.next_close.values)
-print "predicting next day close values with RF predicted sentiments"
-nextClosePrediction = stockForest.predict(np.concatenate((np.concatenate((testDataVecs,estimatorArrayTest),axis=1),targetArrayTestPrediction),axis=1))
-print "predicting next day close values with stanford predicted sentiments"
-nextCloseStanford = stockForest.predict(np.concatenate((np.concatenate((testDataVecs,estimatorArrayTest),axis=1),targetArrayTest),axis=1))
 
 
-output = pd.DataFrame( data=test.next_close.values )
-output.to_csv( "../../backupData/models/learnedModels/randomForestOutputActual.csv", index=False )
-output = pd.DataFrame( data=nextClosePrediction )
-output.to_csv( "../../backupData/models/learnedModels/randomForestOutputSentiment.csv", index=False )
-output = pd.DataFrame( data=nextCloseStanford )
-output.to_csv( "../../backupData/models/learnedModels/randomForestOutputStanford.csv", index=False )
-
+output = pd.DataFrame( data=trainDataVecs)
+output.to_csv( "../../backupData/models/learnedModels/trainDataVecsFromGoogle.csv", index=False )
+output = pd.DataFrame( data=testDataVecs)
+output.to_csv( "../../backupData/models/learnedModels/testDataVecsFromGoogle.csv", index=False )
