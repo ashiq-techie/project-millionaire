@@ -20,6 +20,7 @@ print newsRecords.count()
 writeFile=csv.writer(open('../../backupData/crawledProcessedData/completeQuoteArticleMappingPart45719Above.csv', 'wb'), delimiter=',')
 
 
+
 def textToWords(textToConvert):
 	soup = BeautifulSoup(textToConvert, "html5lib")
 	sentence = soup.get_text().replace("b\'",'')
@@ -178,5 +179,9 @@ for news in newsRecords:
 		iterRecords = iterRecords+1
 	except:
 		db.errorTransformingNewsFeedQuotes.insert({'newsFeedId':news['_id']})
+		print "---------------------------------------------------------------------------------------"
+		print str(iterRecords) + " records processed"
+		print "---------------------------------------------------------------------------------------"
+		iterRecords = iterRecords+1
 		continue
 	

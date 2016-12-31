@@ -1,8 +1,5 @@
 from __future__ import division, unicode_literals
-<<<<<<< HEAD
-from textblob import TextBlob as tb
-=======
->>>>>>> 6d46151f060b0412c797cff9822d22a7fe7ef53a
+
 import pandas as pd
 import re,sys,math
 import nltk
@@ -15,10 +12,10 @@ import numpy as np  # Make sure that numpy is imported
 
 import cPickle
 
-train = pd.read_csv("../../backupData/crawledProcessedData/check.csv", header=0, delimiter=",", quotechar="\"")
-test = pd.read_csv("../../backupData/crawledProcessedData/completeQuoteArticleMappingPart4New.csv", header=0, delimiter=",", quotechar="\"")
+test = pd.read_csv("../../backupData/crawledProcessedData/check.csv", header=0, delimiter=",", quotechar="\"")
+train = pd.read_csv("../../backupData/crawledProcessedData/completeQuoteArticleMappingPart4New.csv", header=0, delimiter=",", quotechar="\"")
 
-test.columns = list(train.columns.values)
+train.columns = list(test.columns.values)
 
 
 # makes the individual avg tfidf vector array
@@ -121,12 +118,13 @@ weights = {}
 for col in tfs.nonzero()[1]:
     weights[feature_names[col]] = tfs[0, col]
 
+# estimate sentiments
 
 print "loading model"
-targetArray = train.as_matrix(columns=['very_neg','neg','neutral','pos','very_pos','next_close'])
-estimatorArray = train.as_matrix(columns=['volume','prev_volume','prev_close','close','prev_adj_close','adj_close','prev_high','high','prev_open','open'])
-print targetArray[0]
-print estimatorArray[0]
+targetArrayTrain = train.as_matrix(columns=['very_neg','neg','neutral','pos','very_pos'])
+estimatorArrayTrain = train.as_matrix(columns=['company_id','volume','prev_volume','prev_close','close','prev_adj_close','adj_close','prev_high','high','prev_open','open'])
+print targetArrayTrain[0]
+print estimatorArrayTrain[0]
 
 
 model = Word2Vec.load_word2vec_format('../../backupData/preTrainedModels/models/GoogleNews-vectors-negative300/GoogleNews-vectors-negative300.bin', binary=True)
@@ -145,20 +143,38 @@ forest = RandomForestRegressor( n_estimators = 100 )
 # very_neg,neg,neutral,pos,very_pos
 
 print "Fitting a random forest to labeled training data..."
-forest = forest.fit( np.concatenate((trainDataVecs, estimatorArray), axis=1), targetArray  )
+forest = forest.fit( np.concatenate((trainDataVecs, estimatorArrayTrain), axis=1), targetArrayTrain  )
+
+
 
 with open('../../backupData/models/learnedModels/randomForest.cpickle.dump', 'wb') as f:
     cPickle.dump(forest, f)
 
 print "Processing Test set"
-targetArray = test.as_matrix(columns=['very_neg','neg','neutral','pos','very_pos','next_close'])
-estimatorArray = test.as_matrix(columns=['volume','prev_volume','prev_close','close','prev_adj_close','adj_close','prev_high','high','prev_open','open'])
-print targetArray[0]
-print estimatorArray[0]
+targetArrayTest = test.as_matrix(columns=['very_neg','neg','neutral','pos','very_pos'])
+estimatorArrayTest = test.as_matrix(columns=['company_id','volume','prev_volume','prev_close','close','prev_adj_close','adj_close','prev_high','high','prev_open','open'])
+print targetArrayTest[0]
+print estimatorArrayTest[0]
 
 testDataVecs = getAvgFeatureVecs(clean_test_articles, model, 300, weights, index2word_set)
-result = forest.predict( np.concatenate((testDataVecs,estimatorArray), axis=1))
+print "predicting sentiments"
+targetArrayTestPrediction = forest.predict( np.concatenate((testDataVecs,estimatorArrayTest), axis=1))
 
-output = pd.DataFrame( data=np.concatenate((targetArray,result), axis=1) )
-output.to_csv( "../../backupData/models/learnedModels/randomForestOutput.csv", index=False )
+# stock market prediction
+
+stockForest = RandomForestRegressor(n_estimators=100)
+print "fitting sentiments to forest"
+stockForest = stockForest.fit(np.concatenate((np.concatenate((trainDataVecs,estimatorArrayTrain),axis=1),targetArrayTrain),axis=1),train.next_close.values)
+print "predicting next day close values with RF predicted sentiments"
+nextClosePrediction = stockForest.predict(np.concatenate((np.concatenate((testDataVecs,estimatorArrayTest),axis=1),targetArrayTestPrediction),axis=1))
+print "predicting next day close values with stanford predicted sentiments"
+nextCloseStanford = stockForest.predict(np.concatenate((np.concatenate((testDataVecs,estimatorArrayTest),axis=1),targetArrayTest),axis=1))
+
+
+output = pd.DataFrame( data=test.next_close.values )
+output.to_csv( "../../backupData/models/learnedModels/randomForestOutputActual.csv", index=False )
+output = pd.DataFrame( data=nextClosePrediction )
+output.to_csv( "../../backupData/models/learnedModels/randomForestOutputSentiment.csv", index=False )
+output = pd.DataFrame( data=nextCloseStanford )
+output.to_csv( "../../backupData/models/learnedModels/randomForestOutputStanford.csv", index=False )
 
